@@ -1,9 +1,6 @@
 package zhanj;
 
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Delivery;
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,21 +15,39 @@ public class Producer implements Runnable{
     private byte[] message;
     private List<String> queues;
 
-    private String txOrConfirm;
+    private int type;
     private AMQP.BasicProperties props = null;
 
-    private long begin;
+    private ProducerListener listener;
 
-    public Producer(Channel channel, String exName, List<String> queues, int total, String txOrConfirm, boolean durable) throws IOException {
+    public Producer(Channel channel, String exName, List<String> queues, int total, String txOrConfirm, boolean durable, ProducerListener listener) throws IOException {
         this.channel = channel;
         this.name = exName;
         this.total = total;
         this.message = ("sent from exchange: " + exName).getBytes();
         this.queues = queues;
-        this.txOrConfirm = txOrConfirm;
+        if ("confirm".equals(txOrConfirm)) {
+            type = 1;
+        } else if ("tx".equals(txOrConfirm)) {
+            type = 2;
+        } else {
+            type = 0;
+        }
         if (durable) {
             props = new AMQP.BasicProperties.Builder().deliveryMode(2).build();
         }
+        this.channel.addReturnListener(new ReturnListener() {
+            @Override
+            public void handleReturn(int replyCode, String replyText, String exchange, String routingKey, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                try {
+                    System.out.println("message return. send again.");
+                    sendMessage(body, routingKey, type);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        this.listener = listener;
     }
 
     private void sendMessage (byte[] message, String queue) throws IOException {
@@ -52,33 +67,32 @@ public class Producer implements Runnable{
         channel.txCommit();
     }
 
+    private void sendMessage (byte[] message, String queue, int type) throws IOException, InterruptedException {
+        switch (type) {
+            case 0:
+                sendMessage(message, queue);
+                break;
+            case 1:
+                sendMessageWithConfirm(message, queue);
+                break;
+            case 2:
+                sendMessageWithTx(message, queue);
+                break;
+        }
+    }
+
     @Override
     public String toString() {
         return String.format("producer [%s] sent %d messages", name, count);
     }
 
     public void run() {
-        begin = System.currentTimeMillis();
-        System.out.format("[%d] producer %s is sending messages to exchange %s...%n", begin, name, name);
-
         int s = queues.size();
         try {
-            if ("none".equals(txOrConfirm)) {
-                for (int i = 0; i < total; ++i) {
-                    sendMessage(message, queues.get(i % s));
-                }
-            } else if ("confirm".equals(txOrConfirm)) {
-                for (int i = 0; i < total; ++i) {
-                    sendMessageWithConfirm(message, queues.get(i % s));
-                }
-            } else if ("tx".equals(txOrConfirm)) {
-                for (int i = 0; i < total; ++i) {
-                    sendMessageWithTx(message, queues.get(i % s));
-                }
-            } else {
-                System.err.println("unknown txOrConfirm: " + txOrConfirm);
+            listener.onSendFirstMessage(System.currentTimeMillis());
+            for (int i = 0; i < total; ++i) {
+                sendMessage(message, queues.get(i % s), type);
             }
-
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -90,9 +104,6 @@ public class Producer implements Runnable{
                 e.printStackTrace();
             }
             channel = null;
-            long now = System.currentTimeMillis();
-            App.decrement();
-            System.out.format("[%d] producer %s stopped. used %d milliseconds.%n", now, name, now - begin);
         }
     }
 }

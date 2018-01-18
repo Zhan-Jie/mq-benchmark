@@ -7,55 +7,61 @@
   },
   "test_cases": [
     {
+      "active": true,
       "exchanges_number": 5,
       "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
-      "auto_ack": false,
-      "durable": false,
-      "mirror_queues": false,
-      "confirm_or_tx": "none"
-    },
-    {
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
+      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
       "confirm_or_tx": "none"
     },
     {
+      "active": true,
       "exchanges_number": 5,
       "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
+      "producers_per_exchange": 2,
       "auto_ack": false,
+      "durable": false,
+      "mirror_queues": false,
+      "confirm_or_tx": "none"
+    },
+    {
+      "active": true,
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 2,
+      "auto_ack": true,
       "durable": true,
       "mirror_queues": false,
       "confirm_or_tx": "none"
     },
     {
+      "active": true,
       "exchanges_number": 5,
       "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
-      "auto_ack": false,
+      "producers_per_exchange": 2,
+      "auto_ack": true,
       "durable": false,
       "mirror_queues": true,
       "confirm_or_tx": "none"
     },
     {
+      "active": true,
       "exchanges_number": 5,
       "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
-      "auto_ack": false,
+      "producers_per_exchange": 2,
+      "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
       "confirm_or_tx": "confirm"
     },
     {
+      "active": true,
       "exchanges_number": 5,
       "queues_per_exchange": 4,
-      "producers_per_exchange": 4,
-      "auto_ack": false,
+      "producers_per_exchange": 2,
+      "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
       "confirm_or_tx": "tx"

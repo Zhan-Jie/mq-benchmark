@@ -22,8 +22,6 @@ import java.util.concurrent.TimeoutException;
  *
  */
 public class App  {
-    private static final int MESSAGES_PER_THREAD = 200000;
-
     public static void main( String[] args ) throws IOException, TimeoutException, InterruptedException {
         ObjectMapper om = new ObjectMapper();
         URL url = App.class.getClassLoader().getResource("config.json");
@@ -38,6 +36,10 @@ public class App  {
 
         ArrayNode cases = (ArrayNode) node.get("test_cases");
         for (JsonNode cas : cases) {
+            boolean active = cas.get("active").asBoolean();
+            if (!active) {
+                continue;
+            }
             int ex = cas.get("exchanges_number").asInt();
             int qPerEx = cas.get("queues_per_exchange").asInt();
             int pPerEx = cas.get("producers_per_exchange").asInt();
@@ -56,6 +58,9 @@ public class App  {
             tc.start();
 
             latch.await();
+
+            tc.stop();
+            System.out.println(tc.report());
         }
     }
 }

@@ -13,12 +13,10 @@ public class Consumer extends DefaultConsumer implements Runnable{
 
     private int count = 0;
 
-    private long begin;
-
     private boolean autoAck;
-    private OnReceiveMessageListener listener;
+    private ConsumerListener listener;
 
-    public Consumer(Channel channel, String queueName, boolean autoAck, OnReceiveMessageListener listener) {
+    public Consumer(Channel channel, String queueName, boolean autoAck, ConsumerListener listener) {
         super(channel);
         this.channel = channel;
         this.name = queueName;
@@ -36,8 +34,6 @@ public class Consumer extends DefaultConsumer implements Runnable{
     }
 
     private void receiveMessage () throws IOException{
-        begin = System.currentTimeMillis();
-        System.out.format("[%d] consumer %s is listening to queue %s...%n", begin, name, name);
         channel.basicConsume(name, autoAck, this);
     }
 
@@ -60,13 +56,5 @@ public class Consumer extends DefaultConsumer implements Runnable{
                 }
             }
         }
-    }
-
-    @Override
-    public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-        super.handleShutdownSignal(consumerTag, sig);
-        long now = System.currentTimeMillis();
-        System.out.format("[%d]consumer %s exit. used %d milliseconds.%n", now, name, now-begin);
-
     }
 }
