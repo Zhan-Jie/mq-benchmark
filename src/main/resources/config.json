@@ -1,0 +1,64 @@
+{
+  "connection":{
+    "host": "172.27.24.146",
+    "port": "30672",
+    "username": "zhanjie",
+    "password": "123456"
+  },
+  "test_cases": [
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": false,
+      "durable": false,
+      "mirror_queues": false,
+      "confirm_or_tx": "none"
+    },
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": true,
+      "durable": false,
+      "mirror_queues": false,
+      "confirm_or_tx": "none"
+    },
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": false,
+      "durable": true,
+      "mirror_queues": false,
+      "confirm_or_tx": "none"
+    },
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": false,
+      "durable": false,
+      "mirror_queues": true,
+      "confirm_or_tx": "none"
+    },
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": false,
+      "durable": false,
+      "mirror_queues": false,
+      "confirm_or_tx": "confirm"
+    },
+    {
+      "exchanges_number": 5,
+      "queues_per_exchange": 4,
+      "producers_per_exchange": 4,
+      "auto_ack": false,
+      "durable": false,
+      "mirror_queues": false,
+      "confirm_or_tx": "tx"
+    }
+  ]
+}
