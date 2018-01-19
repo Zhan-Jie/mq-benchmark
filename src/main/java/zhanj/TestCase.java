@@ -22,9 +22,9 @@ public class TestCase implements ProducerListener, ConsumerListener {
     private boolean mirrorQueues = false;
     private String confirmOrTx = "none";
 
-    private int messagesPerProducer = 10000;
+    private int messagesPerProducer;
 
-    private Connection connection;
+    private List<Connection> connections;
     private List<Runnable> producers;
     private List<Runnable> consumers;
 
@@ -37,11 +37,14 @@ public class TestCase implements ProducerListener, ConsumerListener {
     private long producerStartTime = Long.MAX_VALUE;
     private long consumerFinishedTime = 0L;
 
-    public TestCase(int exchangesNumber, int queuesPerExchange, int producersPerExchange, Connection connection, CountDownLatch latch) {
+    private int nextConn = 0;
+
+    public TestCase(int exchangesNumber, int queuesPerExchange, int producersPerExchange, List<Connection> connections, int messagesPerProducer, CountDownLatch latch) {
         this.exchangesNumber = exchangesNumber;
         this.queuesPerExchange = queuesPerExchange;
         this.producersPerExchange = producersPerExchange;
-        this.connection = connection;
+        this.connections = connections;
+        this.messagesPerProducer = messagesPerProducer;
         this.totalMessages = messagesPerProducer * (producersPerExchange*exchangesNumber);
         this.latch = latch;
         System.out.println("total: " + totalMessages);
@@ -64,7 +67,7 @@ public class TestCase implements ProducerListener, ConsumerListener {
     }
 
     public void initialize () throws IOException, TimeoutException {
-        Channel channel = connection.createChannel();
+        Channel channel = getConnection().createChannel();
 
         String queuePrefix = mirrorQueues ? "mirror-q-" : "q-";
         String exchangePrefix = "ex-";
@@ -81,21 +84,26 @@ public class TestCase implements ProducerListener, ConsumerListener {
             }
         }
         channel.close();
-
         producers = new ArrayList<>(exchangesNumber*producersPerExchange);
         consumers = new ArrayList<>(exchangesNumber*queuesPerExchange);
         for (int i = 0; i < exchangesNumber; ++i) {
             List<String> queues = new ArrayList<>(queuesPerExchange);
             for (int k = 0; k < queuesPerExchange; ++k) {
                 queues.add(queuePrefix + (k + i*queuesPerExchange));
-                Runnable c = new Consumer(connection.createChannel(), queuePrefix + (k + i*queuesPerExchange), autoAck, this);
+                Runnable c = new Consumer(getConnection().createChannel(), queuePrefix + (k + i*queuesPerExchange), autoAck, this);
                 consumers.add(c);
             }
             for (int j = 0; j < producersPerExchange; ++j) {
-                Runnable c = new Producer(connection.createChannel(), exchangePrefix + i, queues, messagesPerProducer, confirmOrTx, durable, this);
+                Runnable c = new Producer(getConnection().createChannel(), exchangePrefix + i, queues, messagesPerProducer, confirmOrTx, durable, this);
                 producers.add(c);
             }
         }
+    }
+
+    private Connection getConnection () {
+        Connection conn = connections.get(nextConn);
+        nextConn = (nextConn + 1) % connections.size();
+        return conn;
     }
 
     public void start() {
@@ -119,7 +127,9 @@ public class TestCase implements ProducerListener, ConsumerListener {
         if (delivered.incrementAndGet() >= totalMessages) {
             try {
                 consumerFinishedTime = System.currentTimeMillis();
-                connection.close();
+                for (Connection conn : connections) {
+                    conn.close();
+                }
                 System.out.println("Close Connection~");
                 latch.countDown();
             } catch (IOException e) {

@@ -1,16 +1,16 @@
 {
-  "connection":{
-    "host": "172.27.24.146",
+  "properties":{
+    "host": "172.27.24.146,172.27.24.130",
     "port": "30672",
     "username": "zhanjie",
-    "password": "123456"
+    "password": "123456",
+    "exchanges_number": 5,
+    "queues_per_exchange": 4,
+    "producers_per_exchange": 2
   },
   "test_cases": [
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
@@ -18,9 +18,6 @@
     },
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": false,
       "durable": false,
       "mirror_queues": false,
@@ -28,9 +25,6 @@
     },
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": true,
       "mirror_queues": false,
@@ -38,9 +32,6 @@
     },
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": false,
       "mirror_queues": true,
@@ -48,9 +39,6 @@
     },
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
@@ -58,9 +46,6 @@
     },
     {
       "active": true,
-      "exchanges_number": 5,
-      "queues_per_exchange": 4,
-      "producers_per_exchange": 2,
       "auto_ack": true,
       "durable": false,
       "mirror_queues": false,
