@@ -4,6 +4,7 @@ import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 
 public class Producer implements Runnable{
@@ -19,8 +20,9 @@ public class Producer implements Runnable{
     private AMQP.BasicProperties props = null;
 
     private ProducerListener listener;
+    private CountDownLatch latch;
 
-    public Producer(Channel channel, String exName, List<String> queues, int total, String txOrConfirm, boolean durable, ProducerListener listener) throws IOException {
+    public Producer(Channel channel, String exName, List<String> queues, int total, String txOrConfirm, boolean durable, ProducerListener listener, CountDownLatch latch) throws IOException {
         this.channel = channel;
         this.name = exName;
         this.total = total;
@@ -48,6 +50,7 @@ public class Producer implements Runnable{
             }
         });
         this.listener = listener;
+        this.latch = latch;
     }
 
     private void sendMessage (byte[] message, String queue) throws IOException {
@@ -92,7 +95,15 @@ public class Producer implements Runnable{
             listener.onSendFirstMessage(System.currentTimeMillis());
             for (int i = 0; i < total; ++i) {
                 sendMessage(message, queues.get(i % s), type);
+                try {
+                    if (i % 100 == 0) {
+                        Thread.sleep(10);
+                    }
+                } catch (Exception e) {
+                    System.err.println("sleep exception:" + e.getMessage());
+                }
             }
+            latch.countDown();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
