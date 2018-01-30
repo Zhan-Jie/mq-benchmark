@@ -1,10 +1,11 @@
 package zhanj;
 
-import com.rabbitmq.client.BuiltinExchangeType;
-import com.rabbitmq.client.Channel;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.rabbitmq.client.Connection;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -93,9 +94,19 @@ public class ProducerTestGroup implements ProducerListener {
         return conn;
     }
 
-    public void report () {
-        System.out.println("\n======= PRODUCER REPORT =======");
-        System.out.format("\t%d producers, %d exchanges, %d queues/consumers. %d messages in total.%n", producers.size(), exchangesNumber, queuesPerExchange*exchangesNumber, messagesPerProducer*producers.size());
-        System.out.println("\tFirst message was sent at: " + producerStartTime + "\n");
+    public String report () throws IOException {
+        StringWriter writer = new StringWriter();
+        JsonGenerator gen = new JsonFactory().createGenerator(writer);
+        gen.useDefaultPrettyPrinter();
+        gen.writeStartObject();
+        gen.writeStringField("type", "producer");
+        gen.writeBooleanField("mirror", mirrorQueues);
+        gen.writeNumberField("producers", producers.size());
+        gen.writeNumberField("exchanges", exchangesNumber);
+        gen.writeNumberField("total", messagesPerProducer*producers.size());
+        gen.writeNumberField("startTime", producerStartTime);
+        gen.writeEndObject();
+        gen.close();
+        return writer.toString();
     }
 }

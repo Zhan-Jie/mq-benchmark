@@ -1,7 +1,7 @@
 {
   "properties":{
-    "host": "172.27.24.146,172.27.24.130",
-    "port": "30672",
+    "host": "172.27.24.146",
+    "port": "5672",
     "username": "zhanjie",
     "password": "123456",
     "exchanges_number": 5,

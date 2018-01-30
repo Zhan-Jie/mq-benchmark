@@ -1,8 +1,11 @@
 package zhanj;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.rabbitmq.client.Connection;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -74,9 +77,19 @@ public class ConsumerTestGroup implements ConsumerListener{
         executor.shutdownNow();
     }
 
-    public void report () {
-        System.out.println("\n======= CONSUMER REPORT =======");
-        System.out.println("\tReceived messages in total: " + delivered.get());
-        System.out.println("\tLast message was received at: " + consumerFinishedTime + "\n");
+    public String report () throws IOException {
+        StringWriter writer = new StringWriter();
+        JsonGenerator gen = new JsonFactory().createGenerator(writer);
+        gen.useDefaultPrettyPrinter();
+        gen.writeStartObject();
+        gen.writeStringField("type", "consumer");
+        gen.writeBooleanField("autoAck", autoAck);
+        gen.writeBooleanField("mirror", mirrorQueues);
+        gen.writeNumberField("consumers", consumers.size());
+        gen.writeNumberField("received", delivered.get());
+        gen.writeNumberField("endTime", consumerFinishedTime);
+        gen.writeEndObject();
+        gen.close();
+        return writer.toString();
     }
 }

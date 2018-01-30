@@ -3,16 +3,13 @@ package zhanj;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.rabbitmq.client.BuiltinExchangeType;
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -92,7 +89,7 @@ public class App  {
             tc.initialize();
             tc.start();
             tc.stop();
-            tc.report();
+            writeToFile("p-report.json", tc.report());
         } else if ("consumer".equals(mode)) {
             CountDownLatch latch = new CountDownLatch(1);
             ConsumerTestGroup tc = new ConsumerTestGroup(ex, qPerEx, autoAck, mirrorQ, ex*pPerEx*msgPerP, connections, latch);
@@ -102,7 +99,7 @@ public class App  {
 
             latch.await();
             tc.stop();
-            tc.report();
+            writeToFile("c-report.json", tc.report());
         } else if ("prepare".equals(mode)) {
             Prepare pre = new Prepare(ex, qPerEx, durable, mirrorQ, connections);
             pre.prepare();
@@ -114,6 +111,16 @@ public class App  {
                 conn.close();
                 System.out.println("close connection to: " + conn.getAddress());
             }
+        }
+    }
+
+    private static void writeToFile (String filename, String text) {
+        try {
+            FileWriter writer = new FileWriter(filename, false);
+            writer.append(text);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
